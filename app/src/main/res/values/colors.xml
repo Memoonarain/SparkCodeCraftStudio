@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="primaryColor">#0016FF</color>
+    <color name="lightColor">#00B4FF</color>
+    <color name="primaryColorLight">#00B4FF</color> <!-- Using lightColor as primaryColorLight -->
+        <color name="colorPrimaryDark">#0000CC</color> <!-- A darker shade of primaryColor -->
+        <color name="colorPrimaryDarkLight">#0077CC</color> <!-- Intermediate shade for light theme -->
+        <color name="colorPrimaryDarker">#000099</color> <!-- A darker shade of primaryColorDark -->
+
+        <!-- Accent and Text Colors -->
+        <color name="colorAccent">#FF4081</color> <!-- A contrasting bright accent color -->
+        <color name="colorAccentLight">#FF80AB</color> <!-- A lighter shade of accent color -->
+        <color name="colorAccentDark">#E91E63</color> <!-- A darker shade of accent color -->
+
+        <color name="backgroundColor">#FFFFFF</color> <!-- White for a clean background -->
+        <color name="textColorPrimary">#000000</color> <!-- Black for primary text -->
+        <color name="textColorSecondary">#666666</color> <!-- Dark gray for secondary text -->
+
+        <color name="buttonColor">#0016FF</color> <!-- Matching button color with primaryColor -->
+        <color name="buttonTextColor">#FFFFFF</color> <!-- White text for buttons -->
+
+        <color name="dividerColor">#CCCCCC</color> <!-- Light gray for dividers -->
+
+        <!-- Background Colors -->
+        <color name="windowBackgroundLight">#FFFFFF</color> <!-- White background for light theme -->
+        <color name="windowBackgroundDark">#303030</color> <!-- Dark background for dark theme -->
+
+</resources>

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".NoteEditor"
+    android:orientation="vertical">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:minHeight="?attr/actionBarSize"
+            app:title="Noted"
+            app:titleTextColor="@color/textColorPrimary"
+            android:theme="?attr/actionBarTheme" />
+
+    <!-- Toolbar for Formatting -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="3dp"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btn_expand"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_margin="5dp"
+                android:background="@drawable/button_active"
+                android:contentDescription="Change Color"
+                android:src="@drawable/ic_minimize" />
+
+            <LinearLayout
+                android:layout_margin="5dp"
+                android:layout_width="wrap_content"
+                android:background="@drawable/button_inactive"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <!-- Bold -->
+                <ImageButton
+                    android:id="@+id/btn_bold"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Bold"
+                    android:src="@drawable/ic_bold" />
+
+                <!-- Italic -->
+                <ImageButton
+                    android:id="@+id/btn_italic"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Italic"
+                    android:src="@drawable/ic_italic" />
+
+                <ImageButton
+                    android:id="@+id/btn_underline"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Underlined"
+                    android:src="@drawable/ic_underlined" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_margin="5dp"
+                android:layout_width="wrap_content"
+                android:background="@drawable/button_inactive"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <ImageButton
+                    android:id="@+id/btn_decrease"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Text Size Decrease"
+                    android:src="@drawable/ic_text_decrease" />
+                <EditText
+                    android:inputType="numberSigned"
+                    android:id="@+id/edtTxtSizeMain"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:text="18"
+                    android:gravity="center"
+                    android:textStyle="bold"
+                    />
+                <ImageButton
+                    android:id="@+id/btn_text_increase"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Text Size Increase"
+                    android:src="@drawable/ic_text_increase" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_margin="5dp"
+                android:layout_width="wrap_content"
+                android:background="@drawable/button_inactive"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <!-- Alignment -->
+                <ImageButton
+                    android:id="@+id/btn_alignment_left"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Alignment Left"
+                    android:src="@drawable/ic_align_left" />
+                <ImageButton
+                    android:id="@+id/btn_alignment_justify"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Alignment Justify"
+                    android:src="@drawable/ic_align_justify" />
+                <ImageButton
+                    android:id="@+id/btn_alignment_center"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Alignment Center"
+                    android:src="@drawable/ic_align_center" />
+                <ImageButton
+                    android:id="@+id/btn_alignment_right"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Alignment Right"
+                    android:src="@drawable/ic_align_right" />
+            </LinearLayout>
+            <ImageButton
+
+                android:layout_margin="5dp"
+                android:id="@+id/btn_text_color"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/button_inactive"
+                android:contentDescription="Text Color"
+                android:src="@drawable/ic_text_color" />
+        </LinearLayout>
+    </HorizontalScrollView>
+    <EditText
+            android:id="@+id/notes_title"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@android:color/transparent"
+            android:gravity="start|top"
+            android:hint="Title"
+            android:inputType="textMultiLine"
+            android:padding="8dp"
+            android:scrollbars="horizontal"
+            android:textSize="26sp"/>
+        <!-- Rich Text Area -->
+        <EditText
+            android:id="@+id/rich_text_editor"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:gravity="start|top"
+            android:hint="Write here..."
+            android:inputType="textMultiLine"
+            android:padding="16dp"
+            android:scrollbars="vertical"
+            android:textSize="16sp" />
+
+
+    </LinearLayout>

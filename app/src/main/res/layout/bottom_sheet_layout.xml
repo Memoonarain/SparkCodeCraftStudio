@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingBottom="20dp"
+    android:layout_height="wrap_content">
+
+    <ImageButton
+        android:id="@+id/btn_minimize"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Bold"
+        android:src="@drawable/ic_minimize" />
+    <LinearLayout
+        android:layout_margin="5dp"
+        android:layout_width="wrap_content"
+        android:background="@drawable/button_inactive"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <ImageButton
+            android:id="@+id/btn_decrease"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Text Size Decrease"
+            android:src="@drawable/ic_text_decrease" />
+        <EditText
+            android:inputType="numberSigned"
+            android:id="@+id/edttxtsize"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:text="18"
+            android:gravity="center"
+            android:textStyle="bold"
+            />
+        <ImageButton
+            android:id="@+id/btn_text_increase"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Text Size Increase"
+            android:src="@drawable/ic_text_increase" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_margin="5dp"
+        android:layout_width="wrap_content"
+        android:background="@drawable/button_inactive"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <!-- Bold -->
+        <ImageButton
+            android:layout_margin="5dp"
+            android:id="@+id/btn_bold"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Bold"
+            android:src="@drawable/ic_bold" />
+
+        <!-- Italic -->
+        <ImageButton
+            android:layout_margin="5dp"
+            android:id="@+id/btn_italic"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Italic"
+            android:src="@drawable/ic_italic" />
+
+        <ImageButton
+            android:layout_margin="5dp"
+            android:id="@+id/btn_underline"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Underlined"
+            android:src="@drawable/ic_underlined" />
+
+        <ImageButton
+            android:layout_margin="5dp"
+            android:id="@+id/btn_clear_format"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Clear Format"
+            android:src="@drawable/ic_clear_format" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_margin="5dp"
+        android:layout_width="wrap_content"
+        android:background="@drawable/button_inactive"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <!-- Alignment -->
+        <ImageButton
+            android:layout_margin="5dp"
+            android:id="@+id/btn_alignment_left"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Alignment Left"
+            android:src="@drawable/ic_align_left" />
+        <ImageButton
+            android:layout_margin="5dp"
+            android:id="@+id/btn_alignment_justify"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Alignment Justify"
+            android:src="@drawable/ic_align_justify" />
+        <ImageButton
+            android:layout_margin="5dp"
+            android:id="@+id/btn_alignment_center"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Alignment Center"
+            android:src="@drawable/ic_align_center" />
+        <ImageButton
+            android:layout_margin="5dp"
+            android:id="@+id/btn_alignment_right"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Alignment Right"
+            android:src="@drawable/ic_align_right" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_margin="5dp"
+        android:background="@drawable/button_inactive"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <ImageButton
+            android:layout_margin="5dp"
+            android:id="@+id/btn_text_color_white"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Text Color"
+            android:src="@drawable/white_bg" />
+        <ImageButton
+            android:layout_margin="5dp"
+            android:id="@+id/btn_text_color_black"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Text Color"
+            android:src="@drawable/button_active"
+            app:tint="@color/black" />
+        <ImageButton
+            android:layout_margin="5dp"
+            android:id="@+id/btn_text_color_Grey"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Text Color"
+            android:src="@drawable/button_active"
+            app:tint="@color/textColorSecondary" />
+        <ImageButton
+            android:layout_margin="5dp"
+            android:id="@+id/btn_text_color_custom"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Text Color"
+            android:src="@drawable/colorpallete" />
+    </LinearLayout>
+</LinearLayout>
