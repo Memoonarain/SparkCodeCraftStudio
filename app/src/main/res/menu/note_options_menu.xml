@@ -3,22 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/addcategorynote"
-        android:title="Add to a Category"
-        android:icon="@drawable/ic_add_to_category"
-        app:showAsAction="always"/>
-    <item
-        android:id="@+id/saveNote"
-        android:title="Save Note"
-        android:icon="@drawable/ic_save"
-        app:showAsAction="always"/>
-
-    <item
-        android:id="@+id/newNote"
-        android:title="New Note"
-        app:showAsAction="never"/>
-
-    <item
         android:id="@+id/deleteNote"
         android:title="Delete Note"
         app:showAsAction="never"/>
@@ -32,5 +16,4 @@
         android:id="@+id/aboutNote"
         android:title="About Note"
         app:showAsAction="never"/>
-
 </menu>

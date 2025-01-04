@@ -22,6 +22,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:text="Note Title"
                 android:textSize="18sp"
                 android:textColor="@android:color/black"
@@ -44,6 +46,7 @@
                 android:layout_height="match_parent"
                 android:text="This is a sample note content."
                 android:textSize="16sp"
+                android:ellipsize="end"
                 android:paddingBottom="8dp"
                 android:textColor="@android:color/black" />
         </LinearLayout>

@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest
+    package="com.example.noted"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -13,9 +20,18 @@
         android:theme="@style/AppTheme"
         tools:targetApi="31">
         <activity
-            android:windowSoftInputMode="stateHidden"
-            android:name=".NoteEditor"
+            android:name=".SettingsActivity"
             android:exported="false" />
+        <activity
+            android:name=".ProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Login_Activity"
+            android:exported="false" />
+        <activity
+            android:name=".NoteEditor"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".LauncherActivity"
             android:exported="true">
@@ -26,9 +42,9 @@
             </intent-filter>
         </activity>
         <activity
-            android:windowSoftInputMode="stateHidden"
             android:name=".MainActivity"
-            android:exported="false"></activity>
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden" />
     </application>
 
 </manifest>

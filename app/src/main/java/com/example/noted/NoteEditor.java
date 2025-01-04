@@ -1,15 +1,24 @@
 package com.example.noted;
-
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.Settings;
+import android.text.Html;
 import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.SpannedString;
 import android.text.style.AlignmentSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.text.style.UnderlineSpan;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.Menu;
@@ -18,23 +27,39 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+import yuku.ambilwarna.AmbilWarnaDialog;
 public class NoteEditor extends AppCompatActivity {
     private Toolbar toolbar;
+    private EditorHelper editorHelper;
     private EditText noteContent, noteTitle;
     private int DEFUALT_TEXT_SIZE = 18;
     private EditText editTextsizeMain;
-    private ImageButton expandButton, boldButton, italicButton, underlineButton, increaseSize, decreaseSize, alignCentre, alignJustify, alignLeft, alignRight, colourCustom;
-    
+    private NotesDatabaseHelper dbHelper;
+    private ImageButton expandButton;
+    private String noteId;
+    private static final int CREATE_FILE_REQUEST_CODE = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,107 +70,68 @@ public class NoteEditor extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
-
+        noteId = getIntent().getStringExtra("NOTE_ID");
          toolbar = findViewById(R.id.toolbar2);
         setSupportActionBar(toolbar);
-
-        boldButton = findViewById(R.id.btn_bold);
-        italicButton = findViewById(R.id.btn_italic);
-        underlineButton = findViewById(R.id.btn_underline);
-        increaseSize = findViewById(R.id.btn_text_increase);
-        decreaseSize = findViewById(R.id.btn_decrease);
-        alignCentre = findViewById(R.id.btn_alignment_center);
-        alignJustify = findViewById(R.id.btn_alignment_justify);
-        alignLeft = findViewById(R.id.btn_alignment_left);
-        alignRight = findViewById(R.id.btn_alignment_right);
-        colourCustom = findViewById(R.id.btn_text_color);
+        dbHelper = new NotesDatabaseHelper(this);
+        editorHelper = new EditorHelper();
+        editTextsizeMain = findViewById(R.id.edtTxtSizeMain);
         noteContent = findViewById(R.id.rich_text_editor);
         noteTitle = findViewById(R.id.notes_title);
-        editTextsizeMain = findViewById(R.id.edtTxtSizeMain);
         expandButton = findViewById(R.id.btn_expand);
-
+        if (noteId == null || noteId.isEmpty()) {
+            Toast.makeText(this, "Created New Note File", Toast.LENGTH_SHORT).show();
+        }
+        else {
+            Toast.makeText(this, "Editing a Note File", Toast.LENGTH_SHORT).show();
+            fetchNoteDetails();
+        }
         expandButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showBottomSheetDialog();
             }
         });
-        boldButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                applyTextFormat(1);
-            }
-        });
-        italicButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                applyTextFormat(2);
-            }
-        });
-        underlineButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                applyTextFormat(3);
-            }
-        });
-        increaseSize.setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.btn_bold).setOnClickListener(v -> editorHelper.applyTextFormat(1,noteContent));
+        findViewById(R.id.btn_italic).setOnClickListener(v -> editorHelper.applyTextFormat(2,noteContent));
+        findViewById(R.id.btn_underline).setOnClickListener(v -> editorHelper.applyTextFormat(3,noteContent));
+        findViewById(R.id.btn_text_increase).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ++DEFUALT_TEXT_SIZE;
                 editTextsizeMain.setText(String.valueOf(DEFUALT_TEXT_SIZE));
                 if(DEFUALT_TEXT_SIZE>4&&DEFUALT_TEXT_SIZE<30){
-                    setTextSize(DEFUALT_TEXT_SIZE);
+                    editorHelper.setTextSize(DEFUALT_TEXT_SIZE,noteContent);
                     }
                 else {
                     editTextsizeMain.setError("Please enter a valid text size"); // Show error if size is invalid
                 }
             }
         });
-        decreaseSize.setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.btn_decrease).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 --DEFUALT_TEXT_SIZE;
                 editTextsizeMain.setText(String.valueOf(DEFUALT_TEXT_SIZE));
                 if(DEFUALT_TEXT_SIZE>4&&DEFUALT_TEXT_SIZE<30){
-                    setTextSize(DEFUALT_TEXT_SIZE);
+                    editorHelper.setTextSize(DEFUALT_TEXT_SIZE,noteContent);
                 }
                 else {
                     editTextsizeMain.setError("Please enter a valid text size"); // Show error if size is invalid
                 }
             }
         });
-        alignCentre.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setTextAlignment(1);
-            }
-        });
-        alignJustify.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setTextAlignment(2);
-            }
-        });
-        alignLeft.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setTextAlignment(3);
-            }
-        });
-        alignRight.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setTextAlignment(4);
-            }
-        });
+        findViewById(R.id.btn_alignment_center).setOnClickListener(v -> editorHelper.setTextAlignment(1,noteContent));
+        findViewById(R.id.btn_alignment_justify).setOnClickListener(v -> editorHelper.setTextAlignment(2,noteContent));
+        findViewById(R.id.btn_alignment_left).setOnClickListener(v -> editorHelper.setTextAlignment(3,noteContent));
+        findViewById(R.id.btn_alignment_right).setOnClickListener(v -> editorHelper.setTextAlignment(4,noteContent));
         editTextsizeMain.setOnEditorActionListener((v, actionId, event) -> {
             String input = editTextsizeMain.getText().toString();
             if (!input.isEmpty()) {
                 try {
                     int textSize = Integer.parseInt(input);
                     if (textSize > 4&&textSize<30) {
-                        setTextSize(textSize); // Call setTextSize with the input size
+                        editorHelper.setTextSize(textSize,noteContent); // Call setTextSize with the input size
                         DEFUALT_TEXT_SIZE = textSize;
                     } else {
                         editTextsizeMain.setError("Please enter a valid text size"); // Show error if size is invalid
@@ -156,18 +142,15 @@ public class NoteEditor extends AppCompatActivity {
             }
             return true; // To indicate the event is handled
         });
+        findViewById(R.id.btn_text_color).setOnClickListener(v -> applyCustomColour());
     }
-
     private void showBottomSheetDialog() {
         // Initialize BottomSheetDialog
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
-
         // Inflate the custom layout
         View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_layout, null);
         bottomSheetDialog.setContentView(bottomSheetView);
-
         EditText edtTextsize = bottomSheetView.findViewById(R.id.edttxtsize);
-
         edtTextsize.setText(String.valueOf(DEFUALT_TEXT_SIZE));
         // Set up listeners for buttons in the Bottom Sheet
         bottomSheetView.findViewById(R.id.btn_minimize).setOnClickListener(new View.OnClickListener() {
@@ -176,40 +159,16 @@ public class NoteEditor extends AppCompatActivity {
                 bottomSheetDialog.dismiss();
             }
         });
-        bottomSheetView.findViewById(R.id.btn_bold).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                applyTextFormat(1);
-                bottomSheetDialog.dismiss(); // Close dialog
-            }
-        });
-        bottomSheetView.findViewById(R.id.btn_italic).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                applyTextFormat(2);
-                bottomSheetDialog.dismiss();
-            }
-        });
-        bottomSheetView.findViewById(R.id.btn_underline).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                applyTextFormat(3);
-                bottomSheetDialog.dismiss();
-            }
-        });
-        bottomSheetView.findViewById(R.id.btn_clear_format).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                applyTextFormat(4);
-                bottomSheetDialog.dismiss();
-            }
-        });
+        bottomSheetView. findViewById(R.id.btn_bold).setOnClickListener(v -> editorHelper.applyTextFormat(1,noteContent));
+        bottomSheetView.findViewById(R.id.btn_italic).setOnClickListener(v -> editorHelper.applyTextFormat(2,noteContent));
+        bottomSheetView.findViewById(R.id.btn_underline).setOnClickListener(v -> editorHelper.applyTextFormat(3,noteContent));
+        bottomSheetView.findViewById(R.id.btn_clear_format).setOnClickListener(v -> editorHelper.applyTextFormat(4,noteContent));
         bottomSheetView.findViewById(R.id.btn_text_increase).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ++DEFUALT_TEXT_SIZE;
                 if(DEFUALT_TEXT_SIZE>4&&DEFUALT_TEXT_SIZE<30){
-                    setTextSize(DEFUALT_TEXT_SIZE);
+                    editorHelper.setTextSize(DEFUALT_TEXT_SIZE,noteContent);
                     editTextsizeMain.setText(String.valueOf(DEFUALT_TEXT_SIZE));
                     edtTextsize.setText(String.valueOf(DEFUALT_TEXT_SIZE));
                     }
@@ -224,7 +183,7 @@ public class NoteEditor extends AppCompatActivity {
                 --DEFUALT_TEXT_SIZE;
                 //edtTextsize.setText(DEFUALT_TEXT_SIZE);
                 if(DEFUALT_TEXT_SIZE>4&&DEFUALT_TEXT_SIZE<30){
-                    setTextSize(DEFUALT_TEXT_SIZE);
+                    editorHelper.setTextSize(DEFUALT_TEXT_SIZE,noteContent);
                     editTextsizeMain.setText(String.valueOf(DEFUALT_TEXT_SIZE));
                     edtTextsize.setText(String.valueOf(DEFUALT_TEXT_SIZE));
                     }
@@ -240,7 +199,7 @@ public class NoteEditor extends AppCompatActivity {
                     float textSizee = Float.parseFloat(input);// Convert input to float
                     int textSize = (int) textSizee;
                     if (textSize > 4&&textSize<30) {
-                        setTextSize(textSize); // Call setTextSize with the input size
+                        editorHelper.setTextSize(DEFUALT_TEXT_SIZE,noteContent);
                         DEFUALT_TEXT_SIZE = textSize;
 
                     } else {
@@ -252,184 +211,160 @@ public class NoteEditor extends AppCompatActivity {
             }
             return true; // To indicate the event is handled
         });
-
-        bottomSheetView.findViewById(R.id.btn_alignment_center).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setTextAlignment(1);
-                bottomSheetDialog.dismiss();
-            }
-        });
-        bottomSheetView.findViewById(R.id.btn_alignment_justify).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setTextAlignment(2);
-                bottomSheetDialog.dismiss();
-            }
-        });
-        bottomSheetView.findViewById(R.id.btn_alignment_left).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setTextAlignment(3);
-                bottomSheetDialog.dismiss();
-            }
-        });
-        bottomSheetView.findViewById(R.id.btn_alignment_right).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setTextAlignment(4);
-                bottomSheetDialog.dismiss();
-            }
-        });
-        bottomSheetView.findViewById(R.id.btn_text_color_white).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                applyColor("#ffffff");
-                bottomSheetDialog.dismiss();
-            }
-        });
-        bottomSheetView.findViewById(R.id.btn_text_color_black).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                applyColor("#000000");
-                bottomSheetDialog.dismiss();
-            }
-        });
-        bottomSheetView.findViewById(R.id.btn_text_color_Grey).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                applyColor("#666666");
-                bottomSheetDialog.dismiss();
-            }
-        });
-        bottomSheetView.findViewById(R.id.btn_text_color_custom).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //write code to open pallete and whatever colour user slecet, that colour's code sent to applyColor function to set that color
-                bottomSheetDialog.dismiss();
-            }
-        });
+        bottomSheetView.findViewById(R.id.btn_alignment_center).setOnClickListener(v -> editorHelper.setTextAlignment(1,noteContent));
+        bottomSheetView.findViewById(R.id.btn_alignment_justify).setOnClickListener(v -> editorHelper.setTextAlignment(2,noteContent));
+        bottomSheetView.findViewById(R.id.btn_alignment_left).setOnClickListener(v -> editorHelper.setTextAlignment(3,noteContent));
+        bottomSheetView.findViewById(R.id.btn_alignment_right).setOnClickListener(v -> editorHelper.setTextAlignment(4,noteContent));
+        bottomSheetView.findViewById(R.id.btn_text_color_white).setOnClickListener(v ->editorHelper.applyColour("#ffffff",noteContent));
+        bottomSheetView.findViewById(R.id.btn_text_color_black).setOnClickListener(v ->editorHelper.applyColour("#666666",noteContent));
+        bottomSheetView.findViewById(R.id.btn_text_color_Grey).setOnClickListener(v ->editorHelper.applyColour("#000000",noteContent));
+        bottomSheetView.findViewById(R.id.btn_text_color_custom).setOnClickListener(v ->applyCustomColour());
         // Show the dialog
         bottomSheetDialog.show();
     }
+    private void fetchNoteDetails() {
+        NotesModel note = dbHelper.getNoteById(noteId);
+        if (note != null) {
+            noteTitle.setText(note.getNoteTitle());
+            Spanned formattedContent = Html.fromHtml(note.getNoteContent());
+            noteContent.setText(formattedContent);
+        }
+    }
+    private void applyCustomColour(){
+        // Initial color to show in the color picker
+        int initialColor = 0xFF000000; // Default black color
 
-    private void setTextAlignment(int alignment) {
+        // Create and show the AmbilWarnaDialog
+        AmbilWarnaDialog colorPickerDialog = new AmbilWarnaDialog(NoteEditor.this, initialColor, new AmbilWarnaDialog.OnAmbilWarnaListener() {
+            @Override
+            public void onOk(AmbilWarnaDialog dialog, int color) {
+                // Convert the selected color to a hex string
+                String hexColor = String.format("#%06X", (0xFFFFFF & color));
 
-        int start = noteContent.getSelectionStart();
-        int end = noteContent.getSelectionEnd();
-        if (start<end){
-            if (alignment==1){
-                SpannableStringBuilder ssb = new SpannableStringBuilder(noteContent.getText());
-                ssb.setSpan(new AlignmentSpan.Standard(Layout.Alignment.ALIGN_CENTER), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                noteContent.setText(ssb);
-                noteContent.setSelection(end);
-            }else if (alignment==2){
-                SpannableStringBuilder ssb = new SpannableStringBuilder(noteContent.getText());
-                ssb.setSpan(new AlignmentSpan.Standard(Layout.Alignment.ALIGN_CENTER), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                noteContent.setText(ssb);
-                noteContent.setSelection(end);
-            }else if (alignment==3){
-                SpannableStringBuilder ssb = new SpannableStringBuilder(noteContent.getText());
-                ssb.setSpan(new AlignmentSpan.Standard(Layout.Alignment.ALIGN_NORMAL), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                noteContent.setText(ssb);
-                noteContent.setSelection(end);
-            }else if (alignment==4){
-                SpannableStringBuilder ssb = new SpannableStringBuilder(noteContent.getText());
-                ssb.setSpan(new AlignmentSpan.Standard(Layout.Alignment.ALIGN_OPPOSITE), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                noteContent.setText(ssb);
-                noteContent.setSelection(end);
+                // Pass the selected color to the applyColor function
+                editorHelper.applyColour(hexColor,noteContent);
             }
-        }
-    }
 
-    private void setTextSize(int textSize) {
-        int start = noteContent.getSelectionStart();
-        int end = noteContent.getSelectionEnd();
+            @Override
+            public void onCancel(AmbilWarnaDialog dialog) {
+                // User canceled the color picker
+            }
+        });
 
-        if (start < end) { // Apply to selected text
-            SpannableStringBuilder ssb = new SpannableStringBuilder(noteContent.getText());
-            ssb.setSpan(
-                    new android.text.style.RelativeSizeSpan((float) textSize / DEFUALT_TEXT_SIZE),
-                    start,
-                    end,
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
-            noteContent.setText(ssb);
-        } else { // Apply to all text if nothing is selected
-            noteContent.setTextSize(textSize);
-        }
-    }
-
-
-    private void applyTextFormat(int textFormat){
-    int start = noteContent.getSelectionStart();
-    int end = noteContent.getSelectionEnd();
-
-    if (start < end) {
-        //For BOlD
-        if (textFormat == 1) {
-            SpannableStringBuilder ssb = new SpannableStringBuilder(noteContent.getText());
-            ssb.setSpan(new StyleSpan(Typeface.BOLD), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            noteContent.setText(ssb);
-            noteContent.setSelection(end); // Maintain cursor position
-        }
-        //For Italic
-        else if (textFormat == 2) {
-            SpannableStringBuilder ssb = new SpannableStringBuilder(noteContent.getText());
-            ssb.setSpan(new StyleSpan(Typeface.ITALIC), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            noteContent.setText(ssb);
-            noteContent.setSelection(end); // Maintain cursor position
-        }
-        //For UnderLine
-        else if (textFormat == 3) {
-            SpannableStringBuilder ssb = new SpannableStringBuilder(noteContent.getText());
-            ssb.setSpan(new UnderlineSpan(), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            noteContent.setText(ssb);
-            noteContent.setSelection(end); // Maintain cursor position
-        }
-        //Remove all formats
-        else {
-            String plainText = noteContent.getText().toString();
-            noteContent.setText(plainText); // Reset to plain text
-            noteContent.setTypeface(Typeface.DEFAULT);
-            noteContent.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16); // Reset text size
-            noteContent.setGravity(Gravity.START); // Reset alignment
-        }
+        // Show the color picker dialog
+        colorPickerDialog.show();
 
     }
-}
-
-    private void applyColor(String color) {
-        int start = noteContent.getSelectionStart();
-        int end = noteContent.getSelectionEnd();
-        int colorInt = Color.parseColor(color);
-        if (start < end) {
-            SpannableStringBuilder ssb = new SpannableStringBuilder(noteContent.getText());
-            ssb.setSpan(new ForegroundColorSpan(colorInt), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            noteContent.setText(ssb);
-            noteContent.setSelection(end);
-        }
-    }
-    
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.note_editor_toolbar_menu, menu);
-        return true;
-    } @Override
+        return true;}
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Log.d("MenuClick", "Menu item clicked: " + item.getTitle());
         // Handle item selection
         if (item.getItemId() == R.id.saveNote) {
+            String title = noteTitle.getText().toString().trim();
+            String content = Html.toHtml(new SpannedString(noteContent.getText()));  // Convert rich text to HTML
+            String createdAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
-        } else if (item.getItemId()==R.id.addcategorynote) {
-
-
+            // Validate input
+            if (title.isEmpty() || content.isEmpty()) {
+                Toast.makeText(this, "Title and content cannot be empty", Toast.LENGTH_SHORT).show();
+            } else {
+                Log.d("SaveNote", "Title: " + title);
+                Log.d("SaveNote", "Content: " + content);
+                try {
+                    if (noteId == null || noteId.isEmpty()) {
+                        // New note
+                        long result = dbHelper.insertNote(title, content, createdAt);
+                        if (result != -1) {
+                            Toast.makeText(this, "Note saved successfully", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "Failed to save note", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        long id = Long.parseLong(noteId);
+                        // Editing an existing note
+                        int result = dbHelper.updateNote(id, title, content);
+                        if (result>=0) {
+                            Toast.makeText(this, "Note updated successfully", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "Failed to update note", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e("SaveNote", "Error saving/updating note", e);
+                    Toast.makeText(this, "An error occurred: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        } else if (item.getItemId() == R.id.addcategorynote) {
+            // Handle category addition logic here
         } else if (item.getItemId()==R.id.deleteNote) {
+            long id = Long.parseLong(noteId);
+            dbHelper.deleteNote(id);
+            finish();
+        }else if (item.getItemId() == R.id.exportNote) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                // Request for MANAGE_EXTERNAL_STORAGE permission on Android 11 and above
+                Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("text/html"); // MIME type for HTML files
+                intent.putExtra(Intent.EXTRA_TITLE, "MyRichText.html");
 
-        } else if (item.getItemId() == R.id.exportNote) {
+                startActivityForResult(intent, CREATE_FILE_REQUEST_CODE);
+            } else {
+                // For devices below Android 10, use WRITE_EXTERNAL_STORAGE
+                if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    // Request permission
+                    Toast.makeText(this, "Plzz allow permisson to access storage from settings", Toast.LENGTH_LONG).show();
+                } else {
+                    // Permission already granted
+                    exportNoteToHtml();
+                }
+            }
 
         }
         return super.onOptionsItemSelected(item);
-
     }
+
+    private void exportNoteToHtml() {
+        try {
+            String title = noteTitle.getText().toString().trim();
+            // Convert SpannableString to HTML
+            String htmlEncodedString = Html.toHtml(new SpannedString(noteContent.getText()));
+
+            // Get external storage directory
+            File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            if (!dir.exists()) {
+                dir.mkdirs(); // Create directory if it doesn't exist
+            }
+
+            // Create a new file
+            File htmlFile = new File(dir, title + ".html");
+
+            // Write HTML string to the file
+            FileOutputStream fileOutputStream = new FileOutputStream(htmlFile);
+            fileOutputStream.write(htmlEncodedString.getBytes());
+            fileOutputStream.close();
+
+            Toast.makeText(NoteEditor.this, "HTML file saved at: " + htmlFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
+        } catch (IOException e) {
+            Toast.makeText(NoteEditor.this, "Error saving file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == CREATE_FILE_REQUEST_CODE && resultCode == RESULT_OK) {
+            if (data != null && data.getData() != null) {
+                Uri uri = data.getData();
+                exportNoteToHtml();
+            }
+        }
+    }
+
 }
