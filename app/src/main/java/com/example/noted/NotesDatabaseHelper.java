@@ -22,17 +22,17 @@ public class NotesDatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE Notes (" +
-                "note_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "note_id Text PRIMARY KEY," +
                 "title TEXT NOT NULL," +
                 "content TEXT NOT NULL," +
-                "created_at TEXT NOT NULL)");
+                "created_at INTEGER NOT NULL)");
 
         db.execSQL("CREATE TABLE Categories (" +
                 "category_id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "name TEXT NOT NULL UNIQUE)");
 
         db.execSQL("CREATE TABLE NoteCategories (" +
-                "note_id INTEGER NOT NULL," +
+                "note_id TEXT NOT NULL," +
                 "category_id INTEGER NOT NULL," +
                 "PRIMARY KEY (note_id, category_id)," +
                 "FOREIGN KEY (note_id) REFERENCES Notes(note_id) ON DELETE CASCADE," +
@@ -46,17 +46,18 @@ public class NotesDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS Notes");
         onCreate(db);
     }
-    public long insertNote(String title, String content, String createdAt) {
+    public long insertNote(String noteId, String title, String content, long timestamp) {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        // Insert the note
-        ContentValues noteValues = new ContentValues();
-        noteValues.put("title", title);
-        noteValues.put("content", content);
-        noteValues.put("created_at", createdAt);
-        long noteId = db.insert("Notes", null, noteValues);
-        return noteId; // Return the ID of the inserted note
+        ContentValues values = new ContentValues();
+        values.put("note_id", noteId);
+        values.put("title", title);
+        values.put("content", content);
+        values.put("created_at", timestamp);
+
+        return db.insert("Notes", null, values);
     }
+
     public long insertCategory(String title) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues noteValues = new ContentValues();
@@ -77,12 +78,13 @@ public class NotesDatabaseHelper extends SQLiteOpenHelper {
         noteCategoryValues.put("category_id", categoryId);
         return db.insert("NoteCategories", null, noteCategoryValues);
     }
-    public int updateNote(long noteId, String title, String noteContent) {
+    public int updateNote(String noteId, String title, String noteContent,long updateAt) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         // Prepare the values to update
         ContentValues noteValues = new ContentValues();
         noteValues.put("title", title); // Update the title
+        noteValues.put("created_at", updateAt);
         noteValues.put("content", noteContent); // Update the content
 
         // Perform the update and return the number of rows affected
@@ -93,7 +95,7 @@ public class NotesDatabaseHelper extends SQLiteOpenHelper {
                 new String[]{String.valueOf(noteId)} // Arguments for the where clause
         );
     }
-    public void deleteNote(long noteId) {
+    public void deleteNote(String noteId) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         // Delete the note by its ID (ON DELETE CASCADE will handle related NoteCategories)
@@ -112,24 +114,42 @@ public class NotesDatabaseHelper extends SQLiteOpenHelper {
         // Close the database connection after the operation
         db.close();
     }
+    public List<NotesModel> fetchAllCategories(){
+        List<NotesModel> categoryModelList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT category_id, name FROM Categories";
+        Cursor cursor = null;
+        try{
+            cursor= db.rawQuery(query, null);
+            if (cursor.moveToFirst()){
+                do{
+                    String categoryId = String.valueOf(cursor.getLong(cursor.getColumnIndexOrThrow("category_id")));
+                    String categoryName= cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                    categoryModelList.add(new NotesModel(categoryId, categoryName));
+                }while (cursor.moveToNext());
+            }
+        }catch (SQLException e){
+            e.printStackTrace();
+        }finally {
+            if (cursor != null) cursor.close();
+            db.close();
+        }
+        return categoryModelList;
+    }
     public List<NotesModel> fetchAllNotes() {
         List<NotesModel> notesModelList = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-
         String query = "SELECT note_id, title, content, created_at FROM Notes";
         Cursor cursor = null;
-
         try {
             cursor = db.rawQuery(query, null);
-
             // Iterate through the results and add them to the list
             if (cursor.moveToFirst()) {
                 do {
                     String id = String.valueOf(cursor.getLong(cursor.getColumnIndexOrThrow("note_id")));
                     String title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
                     String content = cursor.getString(cursor.getColumnIndexOrThrow("content"));
-                    String createdAt = cursor.getString(cursor.getColumnIndexOrThrow("created_at"));
-
+                    long createdAt = cursor.getLong(cursor.getColumnIndexOrThrow("created_at"));
                     notesModelList.add(new NotesModel(id, title, content, createdAt));
                 } while (cursor.moveToNext());
             }
@@ -139,7 +159,6 @@ public class NotesDatabaseHelper extends SQLiteOpenHelper {
             if (cursor != null) cursor.close();
             db.close();
         }
-
         return notesModelList;
     }
     public NotesModel getNoteById(String noteId) {
@@ -156,7 +175,7 @@ public class NotesDatabaseHelper extends SQLiteOpenHelper {
                 String id = String.valueOf(cursor.getLong(cursor.getColumnIndexOrThrow("note_id")));
                 String title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
                 String content = cursor.getString(cursor.getColumnIndexOrThrow("content"));
-                String createdAt = cursor.getString(cursor.getColumnIndexOrThrow("created_at"));
+                long createdAt = cursor.getLong(cursor.getColumnIndexOrThrow("created_at"));
 
                 note = new NotesModel(id, title, content, createdAt);
             }

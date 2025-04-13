@@ -44,9 +44,11 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.UUID;
 
 import yuku.ambilwarna.AmbilWarnaDialog;
 public class NoteEditor extends AppCompatActivity {
@@ -59,7 +61,7 @@ public class NoteEditor extends AppCompatActivity {
     private ImageButton expandButton;
     private String noteId;
     private static final int CREATE_FILE_REQUEST_CODE = 1;
-
+    long timestamp;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -268,6 +270,14 @@ public class NoteEditor extends AppCompatActivity {
             String title = noteTitle.getText().toString().trim();
             String content = Html.toHtml(new SpannedString(noteContent.getText()));  // Convert rich text to HTML
             String createdAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            try {
+                Date date = sdf.parse(createdAt);
+                timestamp = date.getTime(); // This is what you want
+                Log.d("TIME_IN_MILLIS", String.valueOf(timestamp));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
 
             // Validate input
             if (title.isEmpty() || content.isEmpty()) {
@@ -277,18 +287,23 @@ public class NoteEditor extends AppCompatActivity {
                 Log.d("SaveNote", "Content: " + content);
                 try {
                     if (noteId == null || noteId.isEmpty()) {
+                        String noteId = UUID.randomUUID().toString();
                         // New note
-                        long result = dbHelper.insertNote(title, content, createdAt);
+                        long result = dbHelper.insertNote(noteId,title, content, timestamp);
                         if (result != -1) {
+                            SyncManager syncManager = new SyncManager(NoteEditor.this);
+                            syncManager.syncNotes();
                             Toast.makeText(this, "Note saved successfully", Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(this, "Failed to save note", Toast.LENGTH_SHORT).show();
                         }
                     } else {
-                        long id = Long.parseLong(noteId);
+
                         // Editing an existing note
-                        int result = dbHelper.updateNote(id, title, content);
+                        int result = dbHelper.updateNote(noteId, title, content,timestamp);
                         if (result>=0) {
+                            SyncManager syncManager = new SyncManager(NoteEditor.this);
+                            syncManager.syncNotes();
                             Toast.makeText(this, "Note updated successfully", Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(this, "Failed to update note", Toast.LENGTH_SHORT).show();
@@ -302,8 +317,8 @@ public class NoteEditor extends AppCompatActivity {
         } else if (item.getItemId() == R.id.addcategorynote) {
             // Handle category addition logic here
         } else if (item.getItemId()==R.id.deleteNote) {
-            long id = Long.parseLong(noteId);
-            dbHelper.deleteNote(id);
+
+            dbHelper.deleteNote(noteId);
             finish();
         }else if (item.getItemId() == R.id.exportNote) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {

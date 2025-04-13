@@ -3,10 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:ignore="HardcodedText">
 
-    <item
-        android:id="@+id/nav_account"
-        android:title="My Account" />
 
+    <item
+        android:id="@+id/nav_Account"
+        android:title="Account" />
     <item
         android:id="@+id/nav_settings"
         android:title="Settings" />

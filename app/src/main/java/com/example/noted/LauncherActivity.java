@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,12 +14,11 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 public class LauncherActivity extends AppCompatActivity {
-    private static final long SPLASH_DELAY = 1000;
-    Button button;
-    private static final String KEY_FIRST_LAUNCH = "isFirstLaunch";
-    private SharedPreferences sharedPreferences;
-    SharedPreferences.Editor editor;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,40 +29,47 @@ public class LauncherActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        sharedPreferences = getSharedPreferences("Intro Check", MODE_PRIVATE);
-        editor = sharedPreferences.edit();
 
-        button = findViewById(R.id.button);
-        button.setOnClickListener(new View.OnClickListener() {
+        new Handler().postDelayed(new Runnable() {
             @Override
-            public void onClick(View v) {
+            public void run() {
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-                Intent intent = new Intent(LauncherActivity.this, MainActivity.class);
-                setFirstLaunch(false);
+                if (user != null) {
+                    FirebaseFirestore.getInstance().collection("users")
+                            .document(user.getUid())
+                            .get()
+                            .addOnSuccessListener(documentSnapshot -> {
+                                if (documentSnapshot.exists()) {
+                                    SyncManager syncManager = new SyncManager(LauncherActivity.this);
+                                    syncManager.syncNotes();
+                                    Boolean isCompleted = documentSnapshot.getBoolean("isProfileCompleted");
+                                    if (isCompleted != null && isCompleted) {
+                                        // Profile is complete, go to MainActivity
+                                        startActivity(new Intent(LauncherActivity.this, MainActivity.class));
+                                    } else {
+                                        // Profile not complete
+                                        startActivity(new Intent(LauncherActivity.this, ProfileUpdateActivity.class));
+                                        Toast.makeText(LauncherActivity.this, "Profile not Completed...", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {Toast.makeText(LauncherActivity.this, "Profile not Found...", Toast.LENGTH_SHORT).show();
+                                    // No profile found
+                                    startActivity(new Intent(LauncherActivity.this, ProfileUpdateActivity.class));
+                                }
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(LauncherActivity.this, "Error checking profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(LauncherActivity.this, ProfileUpdateActivity.class));
+                                finish();
+                            });
+                } else {
+                    // Not logged in
+                    startActivity(new Intent(LauncherActivity.this, Login_Activity.class));
+                    finish();
+                }
 
-                startActivity(intent);
-                finish();
             }
-        });
-        if (isFirstLaunch()){
-            findViewById(R.id.firstLuanch).setVisibility(View.VISIBLE);
-            findViewById(R.id.logoImg).setVisibility(View.INVISIBLE);
-        }else {
-            new Handler().postDelayed(() -> {
-                Intent intent = new Intent(LauncherActivity.this, MainActivity.class);
-
-                startActivity(intent);
-                finish();
-            }, SPLASH_DELAY);
-        }
-
-    }
-    public boolean isFirstLaunch() {
-        return sharedPreferences.getBoolean(KEY_FIRST_LAUNCH, true);
-    }
-
-    public void setFirstLaunch(boolean isFirstLaunch) {
-        editor.putBoolean(KEY_FIRST_LAUNCH, isFirstLaunch);
-        editor.apply();
+        }, 3000);
     }
 }
